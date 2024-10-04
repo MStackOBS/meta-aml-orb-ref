@@ -1,0 +1,12 @@
+diff --git a/Makefile b/Makefile
+index c61e0c78..a8df8ec0 100644
+--- a/Makefile
++++ b/Makefile
+@@ -141,6 +141,7 @@ install: linkall
+ 	@$(call install,$(INSTALL_LIB_PATH),$(MODULE_LIB))
+ 	@$(call install,$(INSTALL_INC_PATH)/inc,inc/*.h)
+ 	@$(call install,$(INSTALL_INC_PATH)/dvb/inc,dvb/inc/*.h)
++	@$(call install,$(INSTALL_INC_PATH)/externals/HBBTV/inc,externals/HBBTV/inc/*.h)
+ 	@$(call install,$(INSTALL_INC_PATH)/midware/CA/inc,midware/CA/inc/*.h)
+ 	@$(call install,$(INSTALL_INC_PATH)/midware/media/inc,midware/media/inc/*.h)
+ 	@$(call install,$(INSTALL_INC_PATH)/midware/ota/inc,midware/ota/inc/*.h)

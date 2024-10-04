@@ -1,0 +1,23 @@
+diff --git a/interfaces/Ids.h b/interfaces/Ids.h
+index 5f89c35..058b14d 100644
+--- a/interfaces/Ids.h
++++ b/interfaces/Ids.h
+@@ -277,6 +277,7 @@ namespace Exchange {
+         ID_DTV_SATELLITE,
+         ID_DTV_SATELLITE_ITERATOR,
+         ID_DTV_STATUS,
++        ID_DTV_STATUS_ITERATOR,
+         ID_DTV_EIT_EVENT,
+         ID_DTV_EIT_EVENT_ITERATOR,
+         ID_DTV_CONTENTDATA,
+@@ -290,6 +291,10 @@ namespace Exchange {
+         ID_DTV_COMPONENT_TAG,
+         ID_DTV_COMPONENT_TAG_ITERATOR,
+         ID_DTV_TRANSPORT,
++        ID_DTV_DATABYTE,
++        ID_DTV_DATABYTE_ITERATOR,
++        ID_DTV_DISK,
++        ID_DTV_DISK_ITERATOR,
+     };
+ }
+ }

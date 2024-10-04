@@ -1,0 +1,48 @@
+From f09e737097b7cf91364605116eafd512e6669cf5 Mon Sep 17 00:00:00 2001
+From: Eugene Mutavchi <Ievgen_Mutavchi@comcast.com>
+Date: Wed, 7 Sep 2022 20:54:23 +0000
+Subject: [PATCH] comcast - AMLOGIC-3262 - Initial support for instant rate
+ change with custom event
+
+---
+ .../gstreamer/MediaPlayerPrivateGStreamer.cpp         | 11 +++++++++++
+ Source/cmake/OptionsWPE.cmake                         |  1 +
+ 2 files changed, 12 insertions(+)
+
+diff --git a/Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp b/Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp
+index 5bab53b73dc7..9c3c596eba6b 100644
+--- a/Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp
++++ b/Source/WebCore/platform/graphics/gstreamer/MediaPlayerPrivateGStreamer.cpp
+@@ -587,6 +587,17 @@ void MediaPlayerPrivateGStreamer::updatePlaybackRate()
+     GST_INFO_OBJECT(pipeline(), mute ? "Need to mute audio" : "Do not need to mute audio");
+ 
+     if (m_lastPlaybackRate != m_playbackRate) {
++#if ENABLE(INSTANT_RATE_CHANGE)
++        GstStructure* s = gst_structure_new("custom-instant-rate-change",
++            "rate", G_TYPE_DOUBLE, m_playbackRate, nullptr);
++        bool didInstantRateChange = gst_element_send_event(
++            pipeline(), gst_event_new_custom(GST_EVENT_CUSTOM_DOWNSTREAM_OOB, s));
++        if (didInstantRateChange) {
++            g_object_set(m_pipeline.get(), "mute", mute, nullptr);
++            m_lastPlaybackRate = m_playbackRate;
++        }
++        else
++#endif
+         if (doSeek(playbackPosition(), m_playbackRate, static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH))) {
+             g_object_set(m_pipeline.get(), "mute", mute, nullptr);
+             m_lastPlaybackRate = m_playbackRate;
+diff --git a/Source/cmake/OptionsWPE.cmake b/Source/cmake/OptionsWPE.cmake
+index d86906d87439..5744b64a5c59 100644
+--- a/Source/cmake/OptionsWPE.cmake
++++ b/Source/cmake/OptionsWPE.cmake
+@@ -104,6 +104,7 @@ WEBKIT_OPTION_DEPEND(ENABLE_DOCUMENTATION ENABLE_INTROSPECTION)
+ WEBKIT_OPTION_DEFINE(USE_GSTREAMER_HOLEPUNCH "Whether to enable GStreamer holepunch" PRIVATE OFF)
+ WEBKIT_OPTION_DEFINE(USE_EXTERNAL_HOLEPUNCH "Whether to enable external holepunch" PRIVATE OFF)
+ WEBKIT_OPTION_DEFINE(ENABLE_ACCELERATED_2D_CANVAS "Whether to enable accelerated 2D canvas" PRIVATE OFF)
++WEBKIT_OPTION_DEFINE(ENABLE_INSTANT_RATE_CHANGE "Whether to enable instant rate change" PRIVATE OFF)
+ 
+ # Debug memory heap breakdown with malloc-zone allocator
+ WEBKIT_OPTION_DEFINE(ENABLE_MALLOC_HEAP_BREAKDOWN "Whether to enable malloc heap breakdown" PRIVATE OFF)
+-- 
+2.25.1
+

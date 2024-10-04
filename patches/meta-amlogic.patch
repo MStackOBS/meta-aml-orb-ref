@@ -1,0 +1,27 @@
+diff --git a/conf/machine/mesonsc2_5.4_ah212.inc b/conf/machine/mesonsc2_5.4_ah212.inc
+index e03e2352..7b0d78d4 100644
+--- a/conf/machine/mesonsc2_5.4_ah212.inc
++++ b/conf/machine/mesonsc2_5.4_ah212.inc
+@@ -53,7 +53,7 @@ MACHINEOVERRIDES .= ":client"
+ OVERRIDES .= ":dtv"
+ DISTRO_FEATURES_append = " dvb"
+ DISTRO_FEATURES_append = " aml-iptv"
+-PREFERRED_PROVIDER_widevine = "aml-mediadrm-widevine"
++#PREFERRED_PROVIDER_widevine = "aml-mediadrm-widevine"
+ 
+ PREFERRED_VERSION_wayland = "1.17.0"
+ PREFERRED_VERSION_wayland-protocol = "1.18.0"
+diff --git a/recipes-multimedia/aml-pqserver/aml-pqserver_git.bb b/recipes-multimedia/aml-pqserver/aml-pqserver_git.bb
+index 85fc5f3b..76502304 100644
+--- a/recipes-multimedia/aml-pqserver/aml-pqserver_git.bb
++++ b/recipes-multimedia/aml-pqserver/aml-pqserver_git.bb
+@@ -11,7 +11,8 @@ SRC_URI_append = " ${@get_patch_list_with_path('${THISDIR}/amlogic')}"
+ 
+ SRCREV ?= "${AUTOREV}"
+ PV = "${SRCPV}"
+-SRC_URI_rdkpq +="file://pqserver.service"
++#SRC_URI_rdkpq +="file://pqserver.service"
++SRC_URI_append ="file://pqserver.service"
+ 
+ DEPENDS = " libbinder liblog sqlite3 aml-audio-service "
+ do_configure[noexec] = "1"

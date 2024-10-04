@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+echo ""
+echo "RDK setup for Amlogic based DTVKit AT301 Sky reference board"
+echo "Machine config: mesont5w-5.4-lib32-at301-mediaclient"
+echo ""
+
+TOP_DIR=$(pwd)
+
+# Actually keep the AML meta layer as it is. We are going to build the dtv serice via separate repo.
+#if [ ! -f meta-dtvkit-aml/patches/meta-rdk-bsp-amlogic.patch.done ]; then
+#   # Apply patch to AML meta layer that keeps dtv in the build
+#   echo "Patching meta-rdk-bsp-amlogic layer..."
+#   cd meta-rdk-bsp-amlogic
+#   patch -p1 < ../meta-dtvkit-aml/patches/meta-rdk-bsp-amlogic.patch
+#   touch ../meta-dtvkit-aml/patches/meta-rdk-bsp-amlogic.patch.done
+#   cd ..
+#fi
+
+if [ ! -f meta-dtvkit-aml/patches/meta-amlogic.patch.done ]; then
+   # Apply patch to AML meta layer that removes widevine from the build
+   echo "Patching meta-amlogic layer..."
+   cd meta-amlogic
+   patch -p1 < ../meta-dtvkit-aml/patches/meta-amlogic.patch
+   touch ../meta-dtvkit-aml/patches/meta-amlogic.patch.done
+   cd ..
+fi
+
+
+# ipv6calc 0.99.0 is missing, shift up to next minor build
+ipv6dir=meta-rdk-ext/recipes-support/ipv6calc
+if [ ! -f ${ipv6dir}/ipv6calc_0.99.1.bb ]; then
+   cp meta-dtvkit-aml/files/ipv6calc_0.99.1.bb ${ipv6dir}/
+   rm ${ipv6dir}/ipv6calc_0.99.0.bb
+fi
+
+#if [ meta-dtvkit-aml/conf/mesonsc2-5.4-lib32-ah212-dxd6828.conf -nt meta-oem-ekt-amlogic/conf/machine/mesonsc2-5.4-lib32-ah212-dxd6828.conf ]; then
+#   cp meta-dtvkit-aml/conf/mesonsc2-5.4-lib32-ah212-dxd6828.conf meta-oem-ekt-amlogic/conf/machine/
+#fi
+
+# Enable default build machine capabilities.
+# meta-amlogic/aml-setenv.sh limits to 4 core 4 process if unset.
+BITBAKE_FULLSPEED_BUILD=1
+
+export LOCAL_BUILD=1
+MACHINE=mesont5w-5.4-lib32-at301-mediaclient source meta-amlogic/setup-environment $1
+
+# Add meta-dtvkit layer only if not already present
+if [[ $(grep '^BBLAYERS' conf/bblayers.conf | grep -c 'meta-dtvkit-aml') -eq 0 ]]
+then
+   cat >> conf/bblayers.conf <<EOF
+BBLAYERS += "\${RDKROOT}/meta-dtvkit-aml"
+EOF
+fi
+
+# Add meta-orb
+if [ ! -d $TOP_DIR'/meta-orb' ]
+then
+   # Clone the ORB meta layer
+   echo "Cloning ORB..."
+   pushd $TOP_DIR
+   git clone git@github.com:DTVKit/meta-orb.git
+   cd meta-orb
+else
+   # Ensure ORB is up to date
+   echo "Updating ORB..."
+   pushd $TOP_DIR/meta-orb
+   git fetch
+fi
+
+git checkout 555326301ffdf2bb9ca164cf8753406977ebcc06
+popd
+
+# Add ORB related layers if not already present
+if [ $(grep '^BBLAYERS' conf/bblayers.conf | grep -c 'meta-orb') -eq 0 ]
+then
+   cat >> conf/bblayers.conf <<EOF
+BBLAYERS =+ "\${RDKROOT}/meta-orb"
+EOF
+fi
+
+# Remove the fixed timestamp from auto.conf so the current build time is used in version.txt in the image
+sed -i '/^DATETIME/d' conf/auto.conf
+
+echo ""
+echo "Build image: lib32-rdk-generic-mediaclient-image"
+
